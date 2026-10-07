@@ -87,6 +87,17 @@ function stoneTexture() {
   });
 }
 
+function screenTexture() {
+  return canvasTex(256, 144, (g, w, h) => {
+    const gr = g.createLinearGradient(0, 0, w, h); gr.addColorStop(0, '#20345a'); gr.addColorStop(0.55, '#7d6fa8'); gr.addColorStop(1, '#f0a978');
+    g.fillStyle = gr; g.fillRect(0, 0, w, h);
+    g.fillStyle = 'rgba(20,24,44,.6)'; g.beginPath(); g.moveTo(0, h); g.lineTo(60, 80); g.lineTo(100, 110); g.lineTo(160, 60); g.lineTo(w, 115); g.lineTo(w, h); g.fill();
+    g.fillStyle = 'rgba(255,255,255,.88)'; g.beginPath(); g.roundRect(18, 14, 96, 62, 5); g.fill();
+    g.fillStyle = 'rgba(40,50,80,.5)'; for (let i = 0; i < 5; i++) g.fillRect(26, 24 + i * 10, 40 + (i % 3) * 14, 4);
+    g.fillStyle = 'rgba(255,255,255,.8)'; g.fillRect(0, h - 10, w, 10);
+  });
+}
+
 // ---- palette: what the user can choose per material slot ----
 export const PALETTE = {
   floor: { label: '地板', items: [
@@ -124,10 +135,13 @@ export function createMaterials() {
     soil: std({ color: '#2c2521', roughness: 1 }),
     paper: std({ color: '#f4e7c9', roughness: 0.9, emissive: new THREE.Color('#ffc978'), emissiveIntensity: 0.05, side: THREE.DoubleSide }),
     shoji: std({ color: '#f1ead9', roughness: 0.95, emissive: new THREE.Color('#f1ead9'), emissiveIntensity: 0.14, side: THREE.DoubleSide }),
+    drape: std({ map: linenTexture(), bumpMap: linenTexture(), bumpScale: 0.6, roughness: 1, side: THREE.DoubleSide }),
     sheer: std({ color: '#f5efe2', roughness: 1, transparent: true, opacity: 0.55, side: THREE.DoubleSide, depthWrite: false }),
     glass: new THREE.MeshStandardMaterial({ color: '#cfe4f2', roughness: 0.05, transparent: true, opacity: 0.22, depthWrite: false,
       emissive: new THREE.Color('#9ccaf2'), emissiveIntensity: 0.5 }),
-    screen: new THREE.MeshBasicMaterial({ color: '#bcd8ff' }),
+    screen: new THREE.MeshBasicMaterial({ map: screenTexture(), color: '#ffffff' }),
+    tv: std({ color: '#0d0f13', roughness: 0.25, metalness: 0.3 }),
+    tvScreen: std({ color: '#06080b', roughness: 0.08, metalness: 0.6, emissive: new THREE.Color('#1a2433'), emissiveIntensity: 0.25 }),
     paint: std({ color: '#f4f0e6', roughness: 0.8 }),
     plinth: std({ color: '#12171d', roughness: 0.55, metalness: 0.2 }),
     ground: std({ color: '#141b23', roughness: 0.75 }),

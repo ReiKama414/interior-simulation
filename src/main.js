@@ -195,6 +195,7 @@ function setSlot(slot, hex) {
   tw.set(M[slot], c);
   if (slot === 'wall') tw.set(M.wallAccent, c.clone().multiplyScalar(0.93).lerp(new THREE.Color('#8a7a68'), 0.07));
   if (slot === 'wood') tw.set(M.paint, c.clone());
+  if (slot === 'fabric') tw.set(M.drape, c.clone().multiplyScalar(0.96));
   refreshSwatchState();
 }
 
@@ -241,7 +242,7 @@ function applyTime(t) {
   M.shoji.emissiveIntensity = 0.06 + 0.2 * (1 - k.lamp) + 0.2 * k.lamp;
   M.shoji.emissive.set('#f1ead9').lerp(new THREE.Color('#ffc07a'), k.lamp * 0.7);
   M.paper.emissiveIntensity = 0.04 + k.lamp * 1.0;
-  M.screen.color.set('#bcd8ff').multiplyScalar(0.55 + 0.6 * k.lamp);
+  M.screen.color.set('#ffffff').multiplyScalar(0.7 + 0.3 * k.lamp);
   lamps.forEach((l) => { l.light.intensity = l.base * k.lamp; });
   lamState = k.lamp;
 }

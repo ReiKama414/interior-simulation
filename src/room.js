@@ -77,14 +77,45 @@ export function buildRoom(M) {
     slab(group, M.paint, X0 - T, X0 + 0.08, lw.y0 - 0.03, lw.y0, lw.z0 - 0.05, lw.z1 + 0.05, 1);
   }
 
-  // sheer curtains (wavy planes) beside the back window
-  const curtain = (x, w, z, rotY = 0) => {
-    const geo = new THREE.PlaneGeometry(w, 2.9, 28, 1); const p = geo.attributes.position;
-    for (let i = 0; i < p.count; i++) p.setZ(i, Math.sin(p.getX(i) * 22) * 0.03);
-    const m = new THREE.Mesh(geo, M.sheer); m.position.set(x, 1.7, z); m.rotation.y = rotY; m.renderOrder = 2; group.add(m);
-    const rod = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, w + 0.1, 8), M.dark); rod.rotation.z = Math.PI / 2; rod.position.set(x, 3.12, z); group.add(rod);
+  // curtains: sheer + drapes with tie-backs on a rod with rings (fabric colour follows the palette)
+  const pleated = (w, h, folds, amp, tie) => {
+    const geo = new THREE.PlaneGeometry(w, h, Math.max(24, Math.round(folds * 10)), 28); const p = geo.attributes.position;
+    for (let i = 0; i < p.count; i++) {
+      let x = p.getX(i), y = p.getY(i) + h / 2;                       // y: 0 (hem) .. h (rod)
+      if (tie) { const k = 1 - 0.55 * Math.exp(-Math.pow((y - tie.y) / 0.34, 2)); x = tie.anchor + (x - tie.anchor) * k; }
+      const flare = 1 + 0.06 * Math.max(0, 1 - y / 0.6);
+      p.setXYZ(i, x * flare, y - h / 2, Math.sin((x / w) * Math.PI * 2 * folds) * amp * (0.6 + 0.4 * (y / h)));
+    }
+    geo.computeVertexNormals(); return geo;
   };
-  curtain(-1.45, 0.9, Z0 + 0.14); curtain(2.65, 0.9, Z0 + 0.14);
+  const curtainSet = ({ x0, x1, drapeW, rod, place }) => {
+    const g = new THREE.Group(); place(g); group.add(g);
+    const RY = 3.05, HANG = 2.92, top = RY - 0.05;
+    // rod, brackets, finials
+    const rodM = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, rod[1] - rod[0], 14), M.dark); rodM.rotation.z = Math.PI / 2;
+    rodM.position.set((rod[0] + rod[1]) / 2, RY, 0.17); g.add(rodM);
+    for (const x of rod) { const f = new THREE.Mesh(new THREE.SphereGeometry(0.034, 16, 12), M.dark); f.position.set(x, RY, 0.17); g.add(f); }
+    for (const x of [rod[0] + 0.15, (x0 + x1) / 2, rod[1] - 0.15]) { const br = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.03, 0.17), M.dark); br.position.set(x, RY, 0.085); g.add(br); }
+    const rings = (xa, xb, z) => { const n = Math.max(3, Math.round((xb - xa) / 0.11));
+      for (let i = 0; i <= n; i++) { const r = new THREE.Mesh(new THREE.TorusGeometry(0.026, 0.005, 6, 14), M.dark); r.rotation.y = Math.PI / 2; r.position.set(xa + (xb - xa) * i / n, RY, z); g.add(r); } };
+    // sheer across the whole opening
+    const sw = (x1 - x0) + 0.3, sheer = new THREE.Mesh(pleated(sw, HANG, sw / 0.16, 0.022), M.sheer);
+    sheer.position.set((x0 + x1) / 2, top - HANG / 2, 0.13); sheer.renderOrder = 2; g.add(sheer); rings(x0 - 0.15, x1 + 0.15, 0.13);
+    // drapes gathered at both sides
+    for (const side of [-1, 1]) {
+      const w = drapeW[side < 0 ? 0 : 1], edge = side < 0 ? x0 - 0.12 : x1 + 0.12, cx = edge + (side < 0 ? -w / 2 : w / 2) + (side < 0 ? 0.28 : -0.28) * 0;
+      const anchor = side < 0 ? -w / 2 : w / 2;                          // outer edge in local coords
+      const d = new THREE.Mesh(pleated(w, HANG, w / 0.13, 0.05, { y: 1.2, anchor }), M.drape);
+      const ox = side < 0 ? x0 - 0.1 - w / 2 + 0.1 : x1 + 0.1 + w / 2 - 0.1;
+      d.position.set(ox, top - HANG / 2, 0.22); d.castShadow = true; g.add(d); rings(ox - w / 2, ox + w / 2, 0.22);
+      const band = new THREE.Mesh(new THREE.BoxGeometry(w * 0.5, 0.055, 0.09), M.accent);
+      band.position.set(ox + (side < 0 ? -w / 2 + w * 0.25 : w / 2 - w * 0.25), 0.1 + 1.2, 0.25); g.add(band);
+    }
+  };
+  // back window (x from bw.x0 .. bw.x1), curtains hang just inside the wall (z = Z0 + …)
+  curtainSet({ x0: bw.x0, x1: bw.x1, drapeW: [0.7, 0.7], rod: [bw.x0 - 0.75, bw.x1 + 0.55], place: (g) => g.position.set(0, 0, Z0) });
+  // left window: local x = -z, so the window spans local -1.9 .. 1.4
+  curtainSet({ x0: -lw.z1, x1: -lw.z0, drapeW: [0.45, 0.5], rod: [-lw.z1 - 0.55, -lw.z0 + 0.6], place: (g) => { g.position.set(X0, 0, 0); g.rotation.y = Math.PI / 2; } });
 
   // wall art (frames follow the wood palette)
   const hang = (canvas, w, x, y, z, ry = 0) => {

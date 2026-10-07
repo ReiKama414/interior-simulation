@@ -17,6 +17,19 @@ export function createFurniture(M, lamps) {
     lamps.push({ light: l, base: intensity }); return l;
   };
 
+  const bookMats = ['#7b6a55', '#b8a382', '#3d4a58', '#a0533a', '#d7ccb6', '#56634a'].map((c) => new THREE.MeshStandardMaterial({ color: c, roughness: 0.8 }));
+  const stack = (g, x, y, z, n = 3, w = 0.24, d = 0.17, rot = 0) => {   // flat stack of books
+    for (let i = 0; i < n; i++) { const b = box(g, bookMats[(i * 2 + n) % 6], w - i * 0.015, 0.035, d - (i % 2) * 0.01, x, y + 0.0175 + i * 0.037, z, 0.006); b.rotation.y = rot + (i - 1) * 0.12; }
+    return y + n * 0.037;
+  };
+  const incense = (g, x, y, z) => {            // ceramic holder + sticks
+    cyl(g, M.ceramic, 0.045, 0.05, 0.03, x, y + 0.015, z, 20); cyl(g, M.dark, 0.008, 0.008, 0.005, x, y + 0.033, z, 8);
+    for (let i = 0; i < 3; i++) { const st = cyl(g, M.trunk, 0.0025, 0.0025, 0.2, x + (i - 1) * 0.012, y + 0.13, z, 4); st.rotation.z = (i - 1) * 0.12; }
+  };
+  const bowl = (g, x, y, z, r = 0.09, mat = M.ceramic) => sph(g, mat, r, x, y + r * 0.62, z, 1, 0.55, 1);
+  const bottle = (g, x, y, z, h = 0.24, mat = M.dark) => { cyl(g, mat, 0.045, 0.05, h * 0.7, x, y + h * 0.35, z, 20); cyl(g, mat, 0.015, 0.02, h * 0.4, x, y + h * 0.7 + h * 0.15, z, 12); };
+  const sprig = (g, x, y, z) => { for (let i = 0; i < 3; i++) { const st = cyl(g, M.trunk, 0.003, 0.004, 0.32, x + i * 0.012, y + 0.16, z, 5); st.rotation.set(0.12 * (i - 1), 0, 0.18 * (i - 1)); sph(g, M.leaf2, 0.028, x + (i - 1) * 0.05, y + 0.32, z, 1, 0.7, 1); } };
+
   const defs = [];
   const def = (key, name, w, d, build, pos, rot = 0, opts = {}) => defs.push({ key, name, w, d, build, pos, rot, ...opts });
 
@@ -87,8 +100,14 @@ export function createFurniture(M, lamps) {
     for (const sx of [-0.95, 0.95]) for (const sz of [-0.18, 0.18]) box(g, M.dark, 0.035, 0.17, 0.035, sx, 0.085, sz, 0.008);
     for (let i = 0; i < 26; i++) box(g, M.wood, 0.03, 0.44, 0.02, -1.0 + i * 0.08, 0.42, 0.235, 0.004);
     box(g, M.dark, 0.02, 0.44, 0.022, 0, 0.42, 0.236, 0.004);
-    cyl(g, M.ceramic, 0.07, 0.09, 0.26, 0.75, 0.83, 0, 20); sph(g, M.ceramic, 0.09, 0.75, 0.92, 0, 1, 0.85, 1);
-    box(g, M.accent, 0.3, 0.05, 0.22, -0.7, 0.72, 0, 0.008); box(g, M.fabric, 0.28, 0.04, 0.2, -0.7, 0.765, 0, 0.008); box(g, M.dark, 0.26, 0.05, 0.19, -0.69, 0.81, 0, 0.008);
+    stack(g, -0.85, 0.7, 0, 4, 0.3, 0.22); cyl(g, M.dark, 0.05, 0.06, 0.16, -0.85, 0.7 + 4 * 0.037 + 0.08, 0, 20);
+    stack(g, 0.45, 0.7, 0.02, 2, 0.26, 0.19, 0.1); bowl(g, 0.45, 0.777, 0.02, 0.07);
+    bowl(g, -0.35, 0.7, 0.05, 0.11); sph(g, M.stone, 0.05, -0.35, 0.775, 0.05);
+    incense(g, 0.12, 0.7, 0.08);
+    cyl(g, M.ceramic, 0.07, 0.09, 0.26, 0.72, 0.83, 0, 20); sph(g, M.ceramic, 0.09, 0.72, 0.92, 0, 1, 0.85, 1);
+    bottle(g, 1.0, 0.7, -0.02, 0.32, M.ceramic); sprig(g, 1.0, 0.99, -0.02);
+    const fr = box(g, M.wood, 0.3, 0.4, 0.02, -0.05, 0.92, -0.16, 0.008); fr.rotation.x = -0.14;
+    const fi = box(g, M.accent, 0.24, 0.34, 0.01, -0.05, 0.92, -0.148, 0.004); fi.rotation.x = -0.14;
   }, [-2.4, -3.72], 0);
 
   // 平台床
@@ -105,7 +124,7 @@ export function createFurniture(M, lamps) {
     box(g, M.fabric, 1.84, 0.1, 0.9, 0, 0.44, -0.05, 0.05);
     for (const sx of [-0.45, 0.45]) { const p = box(g, M.fabric, 0.7, 0.14, 0.42, sx, 0.43, -0.82, 0.06); p.rotation.x = -0.12; }
     const q = box(g, M.accent, 0.4, 0.4, 0.1, 0.55, 0.5, -0.85, 0.04); q.rotation.set(-0.5, 0.2, 0.05);
-  }, [3.4, -2.75], 0);
+  }, [3.5, -2.75], 0);
 
   // 床頭邊几 + 紙燈
   const stool = (g) => {
@@ -121,9 +140,12 @@ export function createFurniture(M, lamps) {
   def('nightR', '床頭邊几', 0.5, 0.5, (g) => {
     cyl(g, M.wood, 0.24, 0.24, 0.05, 0, 0.5, 0); cyl(g, M.wood, 0.22, 0.22, 0.04, 0, 0.16, 0);
     for (let i = 0; i < 3; i++) { const a = i * Math.PI * 2 / 3; cyl(g, M.wood, 0.02, 0.02, 0.5, Math.cos(a) * 0.16, 0.25, Math.sin(a) * 0.16, 8); }
-    box(g, M.dark, 0.2, 0.03, 0.14, 0, 0.545, 0, 0.005); box(g, M.accent, 0.16, 0.03, 0.12, 0.02, 0.575, 0, 0.005);
-    cyl(g, M.ceramic, 0.05, 0.06, 0.09, -0.1, 0.59, 0.06, 16);
-  }, [4.85, -3.7], 0, { round: true });
+    box(g, M.accent, 0.17, 0.028, 0.23, -0.02, 0.539, 0, 0.004); box(g, M.ceramic, 0.155, 0.02, 0.215, 0.0, 0.54, 0, 0.003);
+    box(g, M.accent, 0.17, 0.022, 0.23, -0.02, 0.56, 0, 0.004).rotation.y = 0.15;
+    const ph = box(g, M.dark, 0.075, 0.009, 0.15, 0.13, 0.5475, 0.07, 0.003); ph.rotation.y = -0.4;
+    const ps = add(g, new THREE.PlaneGeometry(0.066, 0.14), M.screen, 0.13, 0.5525, 0.07); ps.rotation.set(-Math.PI / 2, 0, 0.4);
+    cyl(g, M.ceramic, 0.035, 0.03, 0.07, -0.13, 0.575, 0.14, 16);
+  }, [4.75, -3.7], 0, { round: true });
 
   // 障子屏風
   def('shoji', '障子屏風', 2.4, 0.12, (g) => {
@@ -148,23 +170,37 @@ export function createFurniture(M, lamps) {
     cyl(g, M.ceramic, 0.07, 0.08, 0.2, 0.4, 0.9, 0, 20); cyl(g, M.dark, 0.06, 0.05, 0.16, -0.4, 0.88, 0, 20);
     sph(g, M.leaf, 0.09, 0.4, 1.06, 0, 1, 0.8, 1);
     box(g, M.stone, 0.26, 0.05, 0.2, 0.4, 1.235, 0, 0.01); cyl(g, M.ceramic, 0.04, 0.05, 0.12, 0.4, 1.3, 0, 12);
-  }, [-4.75, 2.9], 1);
+  }, [-4.75, 3.1], 1);
 
   // 書桌 + 筆電 + 檯燈
-  def('desk', '低矮書桌', 1.5, 0.7, (g) => {
+  def('desk', '書桌', 1.5, 0.7, (g) => {
     box(g, M.wood, 1.5, 0.05, 0.7, 0, 0.7, 0, 0.015);
     for (const sx of [-0.68, 0.68]) for (const sz of [-0.28, 0.28]) box(g, M.wood, 0.05, 0.68, 0.05, sx, 0.34, sz, 0.008);
     box(g, M.wood, 1.36, 0.04, 0.04, 0, 0.42, -0.28, 0.008);
-    box(g, M.dark, 0.34, 0.015, 0.24, 0.05, 0.735, 0.02, 0.004);
-    const lid = box(g, M.dark, 0.34, 0.22, 0.012, 0.05, 0.85, -0.1, 0.004); lid.rotation.x = -0.15;
-    const scr = add(g, new THREE.PlaneGeometry(0.31, 0.19), M.screen, 0.05, 0.85, -0.093); scr.rotation.x = -0.15;
+    // drawer pedestal
+    box(g, M.wood, 0.42, 0.5, 0.58, 0.44, 0.42, 0, 0.012);
+    for (const y of [0.55, 0.3]) { box(g, M.wood, 0.36, 0.2, 0.02, 0.44, y, 0.295, 0.006); box(g, M.dark, 0.12, 0.014, 0.014, 0.44, y + 0.06, 0.31, 0.003); }
+    // monitor + stand
+    box(g, M.dark, 0.24, 0.012, 0.17, 0, 0.731, -0.13, 0.004); box(g, M.dark, 0.035, 0.17, 0.02, 0, 0.82, -0.17, 0.004);
+    box(g, M.dark, 0.74, 0.42, 0.03, 0, 1.06, -0.16, 0.006);
+    add(g, new THREE.PlaneGeometry(0.7, 0.38), M.screen, 0, 1.06, -0.144);
+    // keyboard, mouse, notebook, books, mug, pen cup
+    box(g, M.ceramic, 0.4, 0.014, 0.13, -0.02, 0.732, 0.12, 0.004); box(g, M.dark, 0.06, 0.024, 0.09, 0.3, 0.737, 0.12, 0.01);
+    box(g, M.fabric, 0.22, 0.02, 0.3, -0.42, 0.735, 0.1, 0.005).rotation.y = 0.12;
+    stack(g, -0.6, 0.725, -0.12, 3, 0.26, 0.19, -0.1);
+    cyl(g, M.ceramic, 0.038, 0.034, 0.09, 0.3, 0.775, 0.0, 16);
+    cyl(g, M.dark, 0.032, 0.03, 0.09, 0.62, 0.775, -0.2, 14); for (let i = 0; i < 3; i++) { const pn = cyl(g, M.trunk, 0.004, 0.004, 0.13, 0.61 + i * 0.012, 0.86, -0.2, 5); pn.rotation.z = (i - 1) * 0.2; }
     // lamp
-    cyl(g, M.dark, 0.06, 0.07, 0.02, -0.55, 0.735, -0.15, 20);
-    const arm = cyl(g, M.dark, 0.007, 0.007, 0.36, -0.55, 0.9, -0.15, 8); arm.rotation.z = 0.05;
-    const shade = add(g, new THREE.ConeGeometry(0.09, 0.1, 24, 1, true), M.paper, -0.5, 1.1, -0.15); shade.rotation.z = 0.25;
-    lamp(g, -0.5, 1.05, -0.12, 4, '#ffcf8f', 5);
-    cyl(g, M.ceramic, 0.04, 0.035, 0.09, 0.55, 0.775, 0.05, 16);
-    box(g, M.fabric, 0.22, 0.03, 0.3, -0.25, 0.735, 0.15, 0.005);
+    cyl(g, M.dark, 0.06, 0.07, 0.02, -0.62, 0.735, -0.22, 20);
+    const arm = cyl(g, M.dark, 0.007, 0.007, 0.36, -0.62, 0.9, -0.22, 8); arm.rotation.z = 0.05;
+    const shade = add(g, new THREE.ConeGeometry(0.09, 0.1, 24, 1, true), M.paper, -0.56, 1.1, -0.22); shade.rotation.z = 0.25;
+    lamp(g, -0.56, 1.05, -0.19, 4, '#ffcf8f', 5);
+    // cables: monitor -> behind the desk -> power strip
+    const cable = new THREE.CatmullRomCurve3([new THREE.Vector3(0.05, 0.88, -0.18), new THREE.Vector3(0.08, 0.74, -0.3), new THREE.Vector3(0.1, 0.5, -0.4), new THREE.Vector3(0.12, 0.1, -0.38), new THREE.Vector3(0.3, 0.012, -0.3)]);
+    add(g, new THREE.TubeGeometry(cable, 28, 0.006, 6), M.dark);
+    const cable2 = new THREE.CatmullRomCurve3([new THREE.Vector3(-0.58, 0.74, -0.24), new THREE.Vector3(-0.6, 0.6, -0.4), new THREE.Vector3(-0.2, 0.2, -0.4), new THREE.Vector3(0.28, 0.012, -0.3)]);
+    add(g, new THREE.TubeGeometry(cable2, 28, 0.005, 6), M.dark);
+    box(g, M.ceramic, 0.22, 0.035, 0.06, 0.32, 0.02, -0.3, 0.01);
   }, [2.4, 2.7], 0);
 
   def('stool', '木圓凳', 0.45, 0.45, (g) => {
@@ -194,7 +230,7 @@ export function createFurniture(M, lamps) {
       for (let k = 1; k < 6; k++) cyl(g, M.leaf, 0.019, 0.019, 0.012, x, 0.33 + k * h / 6, z, 8);
       for (let k = 0; k < 4; k++) { const l = sph(g, M.leaf, 0.09, x + (k % 2 ? .1 : -.1), 0.33 + h - k * 0.14, z + (k < 2 ? .06 : -.06), 1, 0.16, 0.35); l.rotation.z = k % 2 ? -0.5 : 0.5; }
     }
-  }, [-0.6, -3.55], 0, { round: true });
+  }, [-0.3, -3.55], 0, { round: true });
 
 
   // 床尾長凳
@@ -203,7 +239,7 @@ export function createFurniture(M, lamps) {
     box(g, M.accent, 1.5, 0.05, 0.36, 0, 0.47, 0, 0.02);
     for (const sx of [-0.7, 0.7]) box(g, M.wood, 0.05, 0.4, 0.36, sx, 0.2, 0, 0.01);
     box(g, M.wood, 1.4, 0.04, 0.04, 0, 0.16, 0, 0.008);
-  }, [3.4, -1.3], 0);
+  }, [3.5, -1.3], 0);
 
   // 和風收納櫃 (箪笥)
   def('tansu', '和風收納櫃', 0.5, 1.0, (g) => {
@@ -215,9 +251,11 @@ export function createFurniture(M, lamps) {
       box(g, M.dark, 0.02, 0.02, 0.09, 0.27, y + 0.13, z, 0.004);
     }
     box(g, M.stone, 0.52, 0.03, 1.02, 0, 0.875, 0, 0.008);
-    cyl(g, M.ceramic, 0.06, 0.08, 0.2, -0.02, 1.0, -0.2, 20); sph(g, M.ceramic, 0.075, -0.02, 1.1, -0.2, 1, 0.85, 1);
-    box(g, M.fabric, 0.2, 0.06, 0.28, -0.02, 0.92, 0.22, 0.01); box(g, M.dark, 0.18, 0.05, 0.24, -0.02, 0.975, 0.22, 0.01);
-  }, [-4.75, -1.85], 0);
+    cyl(g, M.ceramic, 0.06, 0.08, 0.2, -0.02, 1.0, -0.3, 20); sph(g, M.ceramic, 0.075, -0.02, 1.1, -0.3, 1, 0.85, 1);
+    stack(g, -0.03, 0.89, 0.3, 3, 0.2, 0.28, Math.PI / 2);
+    bowl(g, -0.02, 0.89, -0.02, 0.09); incense(g, 0.0, 0.89, 0.13);
+    cyl(g, M.dark, 0.05, 0.045, 0.1, 0.02, 0.94, -0.16, 18); cyl(g, M.dark, 0.052, 0.052, 0.012, 0.02, 0.995, -0.16, 18);
+  }, [-4.75, -2.4], 0);
 
   // 石面邊几
   def('sidetable', '石面邊几', 0.55, 0.55, (g) => {
@@ -260,7 +298,7 @@ export function createFurniture(M, lamps) {
   def('rug2', '床邊地毯', 2.4, 1.1, (g) => {
     box(g, M.rug, 2.4, 0.025, 1.1, 0, 0.0125, 0, 0.01);
     box(g, M.accent, 2.4, 0.027, 0.06, 0, 0.0135, 0.5, 0.004); box(g, M.accent, 2.4, 0.027, 0.06, 0, 0.0135, -0.5, 0.004);
-  }, [3.4, -0.55], 0, { rug: true });
+  }, [3.5, -0.55], 0, { rug: true });
 
   // 行燈 (あんどん)
   def('andon', '木框行燈', 0.4, 0.4, (g) => {
@@ -269,7 +307,7 @@ export function createFurniture(M, lamps) {
     box(g, M.wood, 0.36, 0.04, 0.36, 0, 0.68, 0, 0.01);
     box(g, M.paper, 0.3, 0.58, 0.3, 0, 0.36, 0, 0.005);
     lamp(g, 0, 0.36, 0, 6, '#ffb866', 7);
-  }, [0.7, -3.55], 0);
+  }, [-4.0, -0.95], 0);
 
   // 前排閱讀角：球形落地燈 + 座墊 + 矮桌
   def('globe', '和紙球燈', 0.5, 0.5, (g) => {
@@ -290,6 +328,60 @@ export function createFurniture(M, lamps) {
     cyl(g, M.ceramic, 0.04, 0.03, 0.05, -0.1, 0.355, 0.04, 16); cyl(g, M.ceramic, 0.04, 0.03, 0.05, -0.22, 0.355, -0.04, 16);
     box(g, M.dark, 0.16, 0.02, 0.22, 0.24, 0.33, 0, 0.005);
   }, [-2.0, 3.65], 0);
+
+  // 矮電視櫃 + 大電視 (面向沙發)
+  def('tvc', '電視櫃', 1.8, 0.45, (g) => {
+    box(g, M.wood, 1.8, 0.4, 0.45, 0, 0.32, 0, 0.012);
+    box(g, M.stone, 1.84, 0.03, 0.49, 0, 0.535, 0, 0.008);
+    for (const sx of [-0.8, 0.8]) for (const sz of [-0.16, 0.16]) box(g, M.dark, 0.035, 0.12, 0.035, sx, 0.06, sz, 0.008);
+    for (let i = 0; i < 12; i++) box(g, M.wood, 0.03, 0.34, 0.02, -0.15 + i * 0.075, 0.32, 0.235, 0.004);
+    box(g, M.dark, 0.5, 0.3, 0.02, -0.6, 0.32, 0.226, 0.005); box(g, M.dark, 0.34, 0.03, 0.02, 0.62, 0.32, 0.234, 0.005);
+    box(g, M.dark, 0.5, 0.012, 0.2, 0, 0.556, 0.0, 0.004); box(g, M.dark, 0.06, 0.1, 0.03, 0, 0.6, -0.04, 0.004);
+    box(g, M.tv, 1.3, 0.74, 0.035, 0, 0.99, -0.04, 0.006);
+    add(g, new THREE.PlaneGeometry(1.26, 0.7), M.tvScreen, 0, 0.99, -0.0215);
+    box(g, M.dark, 0.9, 0.05, 0.08, 0, 0.59, 0.1, 0.012);
+    bowl(g, -0.75, 0.55, 0.05, 0.1); stack(g, 0.72, 0.55, 0.02, 3, 0.26, 0.19, 0.1); sph(g, M.stone, 0.05, 0.72, 0.68, 0.02);
+    bottle(g, -0.55, 0.55, -0.1, 0.24, M.ceramic); sprig(g, -0.55, 0.72, -0.1);
+  }, [0.5, 0.75], 3);
+
+  // 窗邊閱讀單椅
+  def('armchair', '閱讀單椅', 0.85, 0.85, (g) => {
+    box(g, M.wood, 0.72, 0.06, 0.7, 0, 0.2, 0.02, 0.015);
+    for (const sx of [-0.31, 0.31]) for (const sz of [-0.28, 0.3]) box(g, M.wood, 0.05, 0.18, 0.05, sx, 0.09, sz, 0.01);
+    box(g, M.fabric, 0.62, 0.15, 0.6, 0, 0.31, 0.06, 0.06);
+    const back = new THREE.Group(); back.position.set(0, 0.24, -0.3); back.rotation.x = -0.22; g.add(back);
+    for (const sx of [-0.35, 0.35]) box(back, M.wood, 0.05, 0.5, 0.05, sx, 0.25, 0, 0.01);
+    box(back, M.wood, 0.75, 0.05, 0.05, 0, 0.5, 0, 0.012);
+    box(back, M.fabric, 0.62, 0.34, 0.12, 0, 0.3, 0.03, 0.06);
+    for (const sx of [-0.375, 0.375]) { box(g, M.wood, 0.06, 0.04, 0.62, sx, 0.5, 0.02, 0.01); box(g, M.wood, 0.05, 0.28, 0.05, sx, 0.36, 0.28, 0.01); box(g, M.wood, 0.05, 0.3, 0.05, sx, 0.36, -0.22, 0.01); }
+    const pl = box(g, M.accent, 0.34, 0.34, 0.1, 0.12, 0.55, -0.12, 0.05); pl.rotation.set(-0.3, -0.25, 0.08);
+    const th = box(g, M.accent, 0.5, 0.04, 0.3, -0.05, 0.4, 0.15, 0.02); th.rotation.set(0, 0.3, 0);
+  }, [0.55, -3.3], 0);
+
+  // 窗邊小邊桌 (書 + 茶杯 + 小燈)
+  def('sidetable2', '窗邊小几', 0.5, 0.5, (g) => {
+    cyl(g, M.wood, 0.23, 0.23, 0.04, 0, 0.48, 0); cyl(g, M.wood, 0.2, 0.2, 0.03, 0, 0.02, 0);
+    for (let i = 0; i < 3; i++) { const a = i * Math.PI * 2 / 3 + 0.4; cyl(g, M.wood, 0.02, 0.02, 0.46, Math.cos(a) * 0.14, 0.24, Math.sin(a) * 0.14, 8); }
+    stack(g, -0.06, 0.5, 0.06, 2, 0.19, 0.14, 0.3);
+    cyl(g, M.ceramic, 0.035, 0.03, 0.06, 0.1, 0.53, 0.09, 16);
+    add(g, new THREE.CylinderGeometry(0.06, 0.06, 0.16, 20, 1, true), M.paper, 0.05, 0.6, -0.1); cyl(g, M.dark, 0.05, 0.05, 0.02, 0.05, 0.52, -0.1, 16);
+    lamp(g, 0.05, 0.6, -0.1, 3, '#ffb866', 5);
+  }, [1.6, -3.5], 0, { round: true });
+
+  // 拖鞋
+  def('slippers', '室內拖鞋', 0.4, 0.3, (g) => {
+    for (const sx of [-0.09, 0.09]) {
+      box(g, M.wood, 0.11, 0.02, 0.27, sx, 0.012, 0, 0.008);
+      box(g, M.fabric, 0.11, 0.035, 0.2, sx, 0.035, 0.03, 0.016); box(g, M.accent, 0.1, 0.03, 0.08, sx, 0.05, -0.04, 0.014);
+    }
+  }, [2.7, -0.7], 0, { round: true });
+
+  // 右側前方大地墊 (書桌下)
+  def('rug3', '書桌地墊', 3.2, 2.3, (g) => {
+    box(g, M.rug, 3.2, 0.028, 2.3, 0, 0.014, 0, 0.012);
+    for (const z of [-1.0, 1.0]) box(g, M.accent, 3.0, 0.03, 0.05, 0, 0.0155, z, 0.004);
+    for (const x of [-1.4, 1.4]) box(g, M.accent, 0.05, 0.03, 2.0, x, 0.0155, 0, 0.004);
+  }, [3.2, 2.35], 0, { rug: true });
 
   return defs;
 }
