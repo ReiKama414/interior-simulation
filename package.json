@@ -6,7 +6,7 @@
   "license": "MIT",
   "scripts": {
     "dev": "vite --port 5173",
-    "build": "vite build"
+    "build": "node ./node_modules/vite/bin/vite.js build"
   },
   "dependencies": {
     "three": "^0.186.1",
